@@ -49,4 +49,48 @@ interface MenuItemRepository extends BaseRepository
      * @return object
      */
     public function findByUriInLanguage($uri, $locale);
+
+    /**
+     * @param $criteria
+     * @param $params
+     * @return mixed
+     */
+    public function getItem($criteria, $params);
+
+    /**
+     * @param $criteria
+     * @param $data
+     * @param $params
+     * @return mixed
+     */
+    public function updateBy($criteria, $data, $params);
+
+    /**
+     * @param $params
+     * @return mixed
+     */
+    public function getItemsBy($params);
+
+    /**
+     * @param $criteria
+     * @param $params
+     * @return mixed
+     */
+    public function deleteBy($criteria, $params);
+
+    /**
+     * Update the Menu Items for the given ids
+     * @param array $criterias
+     * @param array $data
+     * @return bool
+     */
+    public function updateItems($criterias, $data);
+
+    /**
+     * Delete the Menu Items for the given ids
+     * @param array $criterias
+     * @return bool
+     */
+    public function deleteItems($criterias);
+
 }

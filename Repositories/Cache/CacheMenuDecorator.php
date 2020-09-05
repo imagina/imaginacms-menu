@@ -29,4 +29,70 @@ class CacheMenuDecorator extends BaseCacheDecorator implements MenuRepository
             return $this->repository->allOnline();
         });
     }
+
+    /**
+     * @param $criteria
+     * @param $params
+     * @return mixed
+     */
+    public function getItem($criteria, $params)
+    {
+        return $this->cache
+            ->tags([$this->entityName, 'global'])
+            ->remember("{$this->entityName}.getItem.{$criteria}", $this->cacheTime,
+                function () use ($criteria, $params) {
+                    return $this->repository->getItem($criteria, $params);
+                }
+            );
+    }
+
+    /**
+     * @param $criteria
+     * @param $data
+     * @param $params
+     * @return mixed
+     */
+    public function updateBy($criteria, $data, $params)
+    {
+        $this->cache->tags($this->entityName)->flush();
+        return $this->cache
+            ->tags([$this->entityName, 'global'])
+            ->remember("{$this->entityName}.getItem.{$criteria}", $this->cacheTime,
+                function () use ($criteria, $data, $params) {
+                    return $this->repository->updateBy($criteria, $data, $params);
+                }
+            );
+    }
+
+    /**
+     * @param $params
+     * @return mixed
+     */
+    public function getItemsBy($params)
+    {
+        return $this->cache
+            ->tags([$this->entityName, 'global'])
+            ->remember("{$this->entityName}.getItemBy", $this->cacheTime,
+                function () use ($params) {
+                    return $this->repository->getItemsBy($params);
+                }
+            );
+    }
+
+    /**
+     * @param $criteria
+     * @param $params
+     * @return mixed
+     */
+    public function deleteBy($criteria, $params)
+    {
+        $this->cache->tags($this->entityName)->flush();
+        return $this->cache
+            ->tags([$this->entityName, 'global'])
+            ->remember("{$this->entityName}.deleteBy.{$criteria}", $this->cacheTime,
+                function () use ($criteria, $params) {
+                    return $this->repository->deleteBy($criteria, $params);
+                }
+            );
+    }
 }

@@ -15,3 +15,17 @@ $router->group(['prefix' => '/menuitem', 'middleware' => 'api.token'], function 
         'middleware' => 'token-can:menu.menuitems.destroy',
     ]);
 });
+$router->group(['prefix' => 'imenu'], function (Router $router) {
+
+  // menu Routes
+  require('ApiRoutes/menuRoutes.php');
+
+  // menuItems Routes
+  require('ApiRoutes/menuItemRoutes.php');
+
+  // Legacy Api Routes
+  require ('ApiRoutes/menuLegacyApiRoutes.php');
+
+});
+
+
