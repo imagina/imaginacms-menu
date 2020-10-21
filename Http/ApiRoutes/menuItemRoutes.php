@@ -29,14 +29,14 @@ $router->group(['prefix' => '/menuitem'], function (Router $router) {
     //Route update
     $router->put('update-items/{criteria}', [
         'as' => 'api.imenu.menuitem.updateItems',
-        'uses' => 'NotificationsController@updateItems',
+        'uses' => 'MenuItemApiController@updateItems',
         'middleware' => ['auth:api']
     ]);
 
     //Route delete
     $router->delete('delete-items/{criteria}', [
         'as' => 'api.imenu.menuitem.deleteItems',
-        'uses' => 'NotificationsController@deleteItems',
+        'uses' => 'MenuItemApiController@deleteItems',
         'middleware' => ['auth:api']
     ]);
 
