@@ -8,19 +8,27 @@ use Illuminate\Routing\Controller;
 use Modules\Menu\Http\Requests\CreateMenuItemRequest;
 
 use Modules\Menu\Repositories\MenuItemRepository;
+use Modules\Menu\Entities\Menu;
 
 use Modules\Menu\Transformers\MenuitemTransformer;
 
 // Base Api
 use Modules\Ihelpers\Http\Controllers\Api\BaseApiController;
 
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Modules\Menu\Services\MenuItemUriGenerator;
+
 class MenuItemApiController extends BaseApiController
 {
   private $menuitem;
+  private $menu;
+  private $menuItemUriGenerator;
 
-  public function __construct(MenuItemRepository $menuitem)
+  public function __construct(MenuItemRepository $menuitem, Menu $menu, MenuItemUriGenerator $menuItemUriGenerator)
   {
     $this->menuitem = $menuitem;
+    $this->menu = $menu;
+    $this->menuItemUriGenerator = $menuItemUriGenerator;
   }
 
   /**
@@ -74,12 +82,12 @@ class MenuItemApiController extends BaseApiController
     return response()->json($response ?? ["data" => "Request successful"], $status ?? 200);
   }
 
-/**
- * CREATE A ITEM
- *
- * @param Request $request
- * @return mixed
- */
+  /**
+   * CREATE A ITEM
+   *
+   * @param Request $request
+   * @return mixed
+   */
   public function create(Request $request)
   {
     \DB::beginTransaction();
@@ -112,10 +120,22 @@ class MenuItemApiController extends BaseApiController
   {
     \DB::beginTransaction(); //DB Transaction
     try {
-      //Get data
       $data = $request->input('attributes') ?? [];//Get data
-      //Get Parameters from URL.
-      $params = $this->getParamsRequest($request);
+      $params = $this->getParamsRequest($request);//Get Parameters from URL.
+      $menu = $this->menu->find($data['menu_id']);//Get menu
+      $languages = LaravelLocalization::getSupportedLanguagesKeys();
+      if (!$menu) throw new \Exception('Item not found', 204);//Break if no found item
+
+      //Validate Link type
+      foreach ($languages as $lang) {
+        if ($data['link_type'] === 'page' && !empty($data['page_id'])) {
+          $data[$lang]['uri'] = $this->menuItemUriGenerator->generateUri($data['page_id'], $data['parent_id'], $lang);
+        }
+      }
+
+      //Validate Parent ID
+      if (!isset($data['parent_id'])) $data['parent_id'] = $this->menuitem->getRootForMenu($menu->id)->id;
+
       //Request to Repository
       $this->menuitem->updateBy($criteria, $data, $params);
       //Response
@@ -156,15 +176,16 @@ class MenuItemApiController extends BaseApiController
     return response()->json($response ?? ["data" => "Request successful"], $status ?? 200);
   }
 
-  public  function updateItems(Request $request){
+  public function updateItems(Request $request)
+  {
     try {
       //Get Parameters from URL.
       $params = $this->getParamsRequest($request);
       $data = $request->input('attributes') ?? [];//Get data
       //Request to Repository
       $dataEntity = $this->menuitem->getItemsBy($params);
-      $crterians=$dataEntity->pluck('id');
-      $dataEntity=$this->menuitem->updateItems($crterians, $data);
+      $crterians = $dataEntity->pluck('id');
+      $dataEntity = $this->menuitem->updateItems($crterians, $data);
       //Response
       $response = ["data" => MenuitemTransformer::collection($dataEntity)];
       //If request pagination add meta-page
@@ -178,13 +199,14 @@ class MenuItemApiController extends BaseApiController
     return response()->json($response ?? ["data" => "Request successful"], $status ?? 200);
   }
 
-  public  function deleteItems(Request $request){
+  public function deleteItems(Request $request)
+  {
     try {
       //Get Parameters from URL.
       $params = $this->getParamsRequest($request);
       //Request to Repository
       $dataEntity = $this->menuitem->getItemsBy($params);
-      $crterians=$dataEntity->pluck('id');
+      $crterians = $dataEntity->pluck('id');
       $this->menuitem->deleteItems($crterians);
       //Response
       $response = ["data" => "Items deleted"];
