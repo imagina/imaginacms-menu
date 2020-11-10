@@ -32,7 +32,7 @@
     "orchestra/testbench": "3.6.*",
     "fzaninotto/faker": "1.4.0",
     "doctrine/dbal": "^2.11",
-    "imagina/page-module": "4.0.x-dev"
+    "imagina/page-module": "v8.x-dev"
   },
   "conflict": {
     "idavoll/menu-module": "*"
