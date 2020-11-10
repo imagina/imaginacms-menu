@@ -2,7 +2,7 @@
 
 namespace Modules\Menu\Transformers;
 
-use Illuminate\Http\Resources\Json\Resource;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Ihelpers\Transformers\BaseApiTransformer;
 
 class MenuTransformer extends BaseApiTransformer
