@@ -29,7 +29,7 @@ class NavbarPresenter extends Presenter
    */
   public function getMenuWithoutDropdownWrapper($item)
   {
-    return '<li class="nav-item"'. $this->getActiveState($item) . '><a class="nav-link" href="' . $item->getUrl() . '" ' . $item->getAttributes() . '>' . $item->getIcon() . '' . $item->title . '</a></li>' . PHP_EOL;
+    return '<li class="nav-item"'. $this->getActiveState($item) . '><a class="nav-link '.($item->attributes['class'] ?? '').'" href="' . $item->getUrl() . '" ' . $item->getAttributes() . '>' . $item->getIcon() . '' . $item->title . '</a></li>' . PHP_EOL;
   }
   
   /**
@@ -74,8 +74,9 @@ class NavbarPresenter extends Presenter
    */
   public function getMenuWithDropDownWrapper($item)
   {
+    
     return '<li class="nav-item dropdown' . $this->getActiveStateOnChild($item, ' active') . '">
-		          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+		          <a href="#" class="nav-link dropdown-toggle  '.($item->attributes['class'] ?? '').'" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
 					' . $item->getIcon() . ' ' . $item->title . '
 			      
 			      </a>
@@ -96,7 +97,7 @@ class NavbarPresenter extends Presenter
   public function getMultiLevelDropdownWrapper($item)
   {
     return '<li class="nav-item dropdown' . $this->getActiveStateOnChild($item, ' active') . '">
-		          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+		          <a href="#" class="nav-link dropdown-toggle '.($item->attributes['class'] ?? '').'" data-toggle="dropdown">
 					' . $item->getIcon() . ' ' . $item->title . '
 			      
 			      </a>
