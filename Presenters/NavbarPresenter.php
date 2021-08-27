@@ -5,9 +5,21 @@ namespace Modules\Menu\Presenters;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
 use Nwidart\Menus\MenuItem;
 use Nwidart\Menus\Presenters\Presenter;
+use Illuminate\Support\Str;
 
 class NavbarPresenter extends Presenter
 {
+  
+  public function setLocale($item)
+  {
+    if (Str::startsWith($item->url, 'http')) {
+      return;
+    }
+    if (LaravelLocalization::hideDefaultLocaleInURL() === true) {
+      $item->url = \LaravelLocalization::localizeUrl($item->url);
+    }
+  }
+  
   /**
    * {@inheritdoc }.
    */
@@ -29,6 +41,7 @@ class NavbarPresenter extends Presenter
    */
   public function getMenuWithoutDropdownWrapper($item)
   {
+    $this->setLocale($item);
     return '<li class="nav-item"'. $this->getActiveState($item) . '><a class="nav-link '.($item->attributes['class'] ?? '').'" href="' . $item->getUrl() . '" ' . $item->getAttributes() . '>' . $item->getIcon() . '' . $item->title . '</a></li>' . PHP_EOL;
   }
   
