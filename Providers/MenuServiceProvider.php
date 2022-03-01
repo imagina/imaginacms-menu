@@ -74,6 +74,7 @@ class MenuServiceProvider extends ServiceProvider
     $this->registerBladeTags();
     $this->mergeConfigFrom($this->getModuleConfigFilePath('menu', 'permissions'), "asgard.menu.permissions");
     $this->mergeConfigFrom($this->getModuleConfigFilePath('menu', 'cmsPages'), "asgard.menu.cmsPages");
+    $this->mergeConfigFrom($this->getModuleConfigFilePath('menu', 'cmsSidebar'), "asgard.menu.cmsSidebar");
     $this->publishConfig('menu', 'config');
     $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
   }
