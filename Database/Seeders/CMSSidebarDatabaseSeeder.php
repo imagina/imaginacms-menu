@@ -1,0 +1,141 @@
+<?php
+
+namespace Modules\Menu\Database\Seeders;
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Seeder;
+use Modules\Menu\Repositories\MenuRepository;
+use Modules\Menu\Repositories\MenuItemRepository;
+use Modules\Page\Repositories\PageRepository;
+
+class CMSSidebarDatabaseSeeder extends Seeder
+{
+  /**
+   * @var PageRepository
+   */
+  private $menu;
+  private $menuitems;
+  private $pages;
+
+  public function __construct(MenuRepository $menu, MenuItemRepository $menuitems, PageRepository $pages)
+  {
+    $this->menu = $menu;
+    $this->menuitems = $menuitems;
+    $this->pages = $pages;
+  }
+
+  public function run()
+  {
+    Model::unguard();
+
+    $modules = app('modules');
+    $enabledModules = $modules->allEnabled();//Get all modules
+    $cmsSidebars = [];
+
+    //Get cmsPages from enable modules
+    foreach (array_keys($enabledModules) as $moduleName) {
+      $cmsSidebars[$moduleName] = config("asgard." . strtolower($moduleName) . ".cmsSidebar") ?? [];
+    }
+
+    //Get the cms menus
+    $menuAdmin = $this->getOrCreateMenu('cms_admin', 'adminMenu');
+    $panelMenu = $this->getOrCreateMenu('cms_panel', 'panelMenu');
+
+    //Insert cms pages
+    foreach ($cmsSidebars as $moduleName => $menuTypes) {
+      foreach ($menuTypes as $type => $menus) {
+        foreach ($menus as $name => $menu) {
+          //Instance the menu id
+          $menuId = ($type == 'admin') ? $menuAdmin->id : $panelMenu->id;
+          //Instance system name
+          $systemName = strtolower("{$moduleName}_cms_{$type}_{$name}");
+
+          if (is_array($menu)) {
+            //Translate page title
+            $title = explode('.', $menu['title']);
+            $prefix = array_shift($title);
+            $title = "{$prefix}::" . join('.', $title);
+            //Insert parent item
+            $menuItem = $this->insertItemPage([
+              'menu_id' => $menuId,
+              "icon" => $menu['icon'],
+              "system_name" => $systemName,
+              'en' => ['title' => trans($title, [], "en")],
+              'es' => ['title' => trans($title, [], "es")],
+            ]);
+            //Insert item by page
+            if (isset($menu['children']) && is_array($menu['children'])) {
+              foreach ($menu['children'] as $index => $child) {
+                $this->insertItemPage([
+                  "menu_id" => $menuId,
+                  "system_name" => "{$systemName}_{$index}",
+                  "parent_id" => $menuItem->id
+                ], $child);
+              }
+            }
+          } else {
+            $this->insertItemPage([
+              "menu_id" => $menuId,
+              "system_name" => $systemName
+            ], $menu);
+          }
+        }
+      }
+    }
+  }
+
+  /**
+   * Get or create menu by name and title
+   * @param $name
+   * @param $title
+   * @return mixed
+   */
+  public function getOrCreateMenu($name, $title)
+  {
+    //Get menu
+    $menu = $this->menu->where('name', $name)->first();
+    //Create menu if not exist
+    if (!$menu) {
+      //Create Menu
+      $menu = $this->menu->create([
+        'name' => $name,
+        'en' => ['title' => $title, "status" => 1],
+        'es' => ['title' => $title, "status" => 1],
+      ]);
+      //Remove all items (root)
+      $this->menuitems->where('menu_id', $menu->id)->delete();
+    }
+    //Return menu
+    return $menu;
+  }
+
+  /**
+   * Insert an item by menuId
+   * @param $itemData
+   * @param $pageName
+   * @return mixed
+   */
+  public function insertItemPage($itemData, $pageName = false)
+  {
+    //Get page
+    if ($pageName) {
+      $page = $this->pages->where('system_name', $pageName)->first();
+      //Create menu item
+      if ($page) {
+        $itemData = array_merge($itemData, [
+          "icon" => $page->options->icon ?? 'fas fa-circle',
+          "page_id" => $page->id,
+          'en' => ['title' => $page->translate("en")['title'] ?? $page->title],
+          'es' => ['title' => $page->translate("es")['title'] ?? $page->title],
+        ]);
+      }
+    }
+
+    //Create Item if not exist
+    $menuItem = $this->menuitems->where('system_name', $itemData['system_name'])->first();
+    if (!$menuItem) $menuItem = $this->menuitems->create($itemData);
+
+    //Return item
+    return $menuItem;
+  }
+}
