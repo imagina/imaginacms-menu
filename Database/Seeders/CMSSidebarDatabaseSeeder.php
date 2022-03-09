@@ -117,10 +117,13 @@ class CMSSidebarDatabaseSeeder extends Seeder
    */
   public function insertItemPage($itemData, $pageName = false)
   {
+    //Get menu item
+    $menuItem = $this->menuitems->where('system_name', $itemData['system_name'])->first();
     //Get page
-    if ($pageName) {
-      $page = $this->pages->where('system_name', $pageName)->first();
-      //Create menu item
+    $page = $pageName ? $this->pages->where('system_name', $pageName)->first() : null;
+
+    if (!$menuItem) {
+      //Set extra itemData
       if ($page) {
         $itemData = array_merge($itemData, [
           "icon" => $page->options->icon ?? 'fas fa-circle',
@@ -129,11 +132,16 @@ class CMSSidebarDatabaseSeeder extends Seeder
           'es' => ['title' => $page->translate("es")['title'] ?? $page->title],
         ]);
       }
+      //Create menu item
+      $menuItem = $this->menuitems->create($itemData);
+    } else {
+      //Validate page_id if menuItem already exist
+      if ($menuItem->page_id && !$this->pages->find($menuItem->page_id)) {
+        $itemData = array_merge($itemData, ['page_id' => $page ? $page->id : null]);
+      }
+      //Update itemData
+      $menuItem->update($itemData);
     }
-
-    //Create Item if not exist
-    $menuItem = $this->menuitems->where('system_name', $itemData['system_name'])->first();
-    if (!$menuItem) $menuItem = $this->menuitems->create($itemData);
 
     //Return item
     return $menuItem;
