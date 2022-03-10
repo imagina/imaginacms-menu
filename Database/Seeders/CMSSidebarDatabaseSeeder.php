@@ -37,6 +37,10 @@ class CMSSidebarDatabaseSeeder extends Seeder
       $cmsSidebars[$moduleName] = config("asgard." . strtolower($moduleName) . ".cmsSidebar") ?? [];
     }
 
+    //Delete menus
+    $this->menu->whereIn("name", ['cms_admin', 'cms_panel'])
+      ->whereDate('created_at', '<=', '2022-03-10')->delete();
+
     //Get the cms menus
     $menuAdmin = $this->getOrCreateMenu('cms_admin', 'adminMenu');
     $panelMenu = $this->getOrCreateMenu('cms_panel', 'panelMenu');
@@ -123,6 +127,9 @@ class CMSSidebarDatabaseSeeder extends Seeder
     $page = $pageName ? $this->pages->where('system_name', $pageName)->first() : null;
 
     if (!$menuItem) {
+      //Set positions
+      $positions = ['isite_cms_main_home' => 0, 'isite_cms_admin_index' => 2];
+      $itemData["position"] = isset($positions[$pageName]) ? $positions[$pageName] : 1;
       //Set extra itemData
       if ($page) {
         $itemData = array_merge($itemData, [
