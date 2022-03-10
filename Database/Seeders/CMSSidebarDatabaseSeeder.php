@@ -129,7 +129,7 @@ class CMSSidebarDatabaseSeeder extends Seeder
     if (!$menuItem) {
       //Set positions
       $positions = ['isite_cms_main_home' => 0, 'isite_cms_admin_index' => 2];
-      $itemData["position"] = isset($positions[$pageName]) ? $positions[$pageName] : 1;
+
       //Set extra itemData
       if ($page) {
         $itemData = array_merge($itemData, [
@@ -139,6 +139,12 @@ class CMSSidebarDatabaseSeeder extends Seeder
           'es' => ['title' => $page->translate("es")['title'] ?? $page->title],
         ]);
       }
+
+      //Set extra data
+      $itemData["position"] = isset($positions[$pageName]) ? $positions[$pageName] : 1;
+      $itemData["en"]["status"] = 1;
+      $itemData["es"]["status"] = 1;
+
       //Create menu item
       $menuItem = $this->menuitems->create($itemData);
     } else {

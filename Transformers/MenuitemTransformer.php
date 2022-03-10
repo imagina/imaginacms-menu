@@ -24,7 +24,7 @@ class MenuitemTransformer extends BaseApiTransformer
       'title' => $this->when($this->title, $this->title),
       'uri' => $this->when($this->uri, $this->uri),
       'url' => $this->when($this->url, $this->url),
-      'status' => $this->when($this->status, $this->status),
+      'status' => $this->when(isset($this->status), strval($this->status)),
       'isRoot' => $this->when($this->is_root, $this->is_root),
       'icon' => $this->when($this->icon, $this->icon),
       'linkType' => $this->when($this->link_type, $this->link_type),
@@ -41,7 +41,7 @@ class MenuitemTransformer extends BaseApiTransformer
       foreach ($languages as $lang => $value) {
         $data[$lang]['title'] = $this->hasTranslation($lang) ? $this->translate("$lang")['title'] : '';
         $data[$lang]['description'] = $this->hasTranslation($lang) ? $this->translate("$lang")['description'] : '';
-        $data[$lang]['status'] = $this->hasTranslation($lang) ? $this->translate("$lang")['status'] : '';
+        $data[$lang]['status'] = $this->hasTranslation($lang) ? strval($this->translate("$lang")['status']) : '';
         $data[$lang]['uri'] = $this->hasTranslation($lang) ? $this->translate("$lang")['uri'] : '';
         $data[$lang]['url'] = $this->hasTranslation($lang) ? $this->translate("$lang")['url'] : '';
       }
