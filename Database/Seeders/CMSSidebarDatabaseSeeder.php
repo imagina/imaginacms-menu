@@ -39,7 +39,7 @@ class CMSSidebarDatabaseSeeder extends Seeder
 
     //Delete menus
     $this->menu->whereIn("name", ['cms_admin', 'cms_panel'])
-      ->whereDate('created_at', '<=', '2022-03-10')->delete();
+      ->whereDate('created_at', '<=', '2022-03-18')->delete();
 
     //Get the cms menus
     $menuAdmin = $this->getOrCreateMenu('cms_admin', 'adminMenu');
