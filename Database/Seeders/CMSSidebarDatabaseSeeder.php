@@ -131,14 +131,7 @@ class CMSSidebarDatabaseSeeder extends Seeder
       $positions = ['isite_cms_main_home' => 0, 'isite_cms_admin_index' => 2];
 
       //Set extra itemData
-      if ($page) {
-        $itemData = array_merge($itemData, [
-          "icon" => $page->options->icon ?? 'fas fa-circle',
-          "page_id" => $page->id,
-          'en' => ['title' => $page->translate("en")['title'] ?? $page->title],
-          'es' => ['title' => $page->translate("es")['title'] ?? $page->title],
-        ]);
-      }
+      if ($page) $itemData = $this->mergeItemPageData($itemData, $page);
 
       //Set extra data
       $itemData["position"] = isset($positions[$pageName]) ? $positions[$pageName] : 1;
@@ -151,6 +144,8 @@ class CMSSidebarDatabaseSeeder extends Seeder
       //Validate page_id if menuItem already exist
       if ($menuItem->page_id && !$this->pages->find($menuItem->page_id)) {
         $itemData = array_merge($itemData, ['page_id' => $page ? $page->id : null]);
+      } else if (!$menuItem->page_id && $page) {
+        $itemData = $this->mergeItemPageData($itemData, $page);
       }
       //Update itemData
       $menuItem->update($itemData);
@@ -158,5 +153,16 @@ class CMSSidebarDatabaseSeeder extends Seeder
 
     //Return item
     return $menuItem;
+  }
+
+  //Merge page data with itemData
+  public function mergeItemPageData($itemData, $pageData)
+  {
+    return array_merge($itemData, [
+      "icon" => $pageData->options->icon ?? 'fas fa-circle',
+      "page_id" => $pageData->id,
+      'en' => ['title' => $pageData->translate("en")['title'] ?? $pageData->title],
+      'es' => ['title' => $pageData->translate("es")['title'] ?? $pageData->title],
+    ]);
   }
 }
