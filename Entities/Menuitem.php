@@ -5,10 +5,10 @@ namespace Modules\Menu\Entities;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use TypiCMS\NestableTrait;
-
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 class Menuitem extends Model
 {
-    use Translatable, NestableTrait;
+    use Translatable, NestableTrait, BelongsToTenant;
 
     public $translatedAttributes = ['title', 'uri', 'url', 'status', 'locale', 'description'];
     protected $fillable = [

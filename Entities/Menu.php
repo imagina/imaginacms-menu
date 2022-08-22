@@ -4,10 +4,11 @@ namespace Modules\Menu\Entities;
 
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Menu extends Model
 {
-    use Translatable;
+    use Translatable, BelongsToTenant;
 
     protected $fillable = [
         'name',

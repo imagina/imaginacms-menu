@@ -3,6 +3,7 @@
 namespace Modules\Menu\Transformers;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Ihelpers\Transformers\BaseApiTransformer;
+use Illuminate\Support\Facades\Cache;
 
 class MenuitemTransformer extends BaseApiTransformer
 {
@@ -40,7 +41,7 @@ class MenuitemTransformer extends BaseApiTransformer
       foreach ($languages as $lang => $value) {
         $data[$lang]['title'] = $this->hasTranslation($lang) ? $this->translate("$lang")['title'] : '';
         $data[$lang]['description'] = $this->hasTranslation($lang) ? $this->translate("$lang")['description'] : '';
-        $data[$lang]['status'] = $this->hasTranslation($lang) ? $this->translate("$lang")['status'] : '';
+        $data[$lang]['status'] = $this->hasTranslation($lang) ? strval($this->translate("$lang")['status']) : '';
         $data[$lang]['uri'] = $this->hasTranslation($lang) ? $this->translate("$lang")['uri'] : '';
         $data[$lang]['url'] = $this->hasTranslation($lang) ? $this->translate("$lang")['url'] : '';
       }
@@ -48,4 +49,27 @@ class MenuitemTransformer extends BaseApiTransformer
 
     return $data;
   }
+
+  /*
+  * Integration with tenant - menu
+  */
+  public function getMenuName(){
+  
+  
+    return Cache::store('array')->remember('menu_' . $this->menu_id, 60, function () {
+    
+      $params = [
+      "include" => []
+    ];
+
+    $menu = app('Modules\Menu\Repositories\MenuRepository')->getItem($this->menu_id,json_decode(json_encode($params)));
+
+    if(!empty($menu))
+      return $menu->name;
+      return '';
+    });
+  
+
+  }
+
 }

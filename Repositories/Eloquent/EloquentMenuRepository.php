@@ -11,6 +11,8 @@ use Modules\Menu\Events\MenuWasCreated;
 use Modules\Menu\Events\MenuWasUpdated;
 use Modules\Menu\Repositories\MenuRepository;
 
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
+
 class EloquentMenuRepository extends EloquentBaseRepository implements MenuRepository
 {
   public function create($data)
@@ -40,7 +42,7 @@ class EloquentMenuRepository extends EloquentBaseRepository implements MenuRepos
   public function allOnline()
   {
     $locale = App::getLocale();
-    
+
     return $this->model->whereHas('translations', function (Builder $q) use ($locale) {
       $q->where('locale', "$locale");
       $q->where('status', 1);
@@ -141,6 +143,21 @@ class EloquentMenuRepository extends EloquentBaseRepository implements MenuRepos
       $query->where('id', $criteria);
     }
     
+
+    $entitiesWithCentralData = json_decode(setting("isite::tenantWithCentralData", null, "[]",true));
+    $tenantWithCentralData = in_array("menu", $entitiesWithCentralData);
+
+    if ($tenantWithCentralData && isset(tenant()->id)) {
+      $model = $this->model;
+
+      $query->withoutTenancy();
+      $query->where(function ($query) use ($model) {
+        $query->where($model->qualifyColumn(BelongsToTenant::$tenantIdColumn), tenant()->getTenantKey())
+          ->orWhereNull($model->qualifyColumn(BelongsToTenant::$tenantIdColumn));
+      });
+    }
+
+
     /*== FIELDS ==*/
     if (isset($params->fields) && count($params->fields))
       $query->select($params->fields);

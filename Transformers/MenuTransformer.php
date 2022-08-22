@@ -4,6 +4,8 @@ namespace Modules\Menu\Transformers;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Ihelpers\Transformers\BaseApiTransformer;
+use Illuminate\Support\Facades\Cache;
+use Modules\Menu\Transformers\MenuitemTransformer;
 
 class MenuTransformer extends BaseApiTransformer
 {
@@ -18,7 +20,8 @@ class MenuTransformer extends BaseApiTransformer
       'status' => $this->when(isset($this->status), $this->status),
       'createdAt' => $this->when($this->created_at, $this->created_at),
       'updatedAt' => $this->when($this->updated_at, $this->updated_at),
-      'menuitems' => MenuitemTransformer::collection($this->whenLoaded('menuitems')),
+      //'menuitems' => MenuitemTransformer::collection($this->whenLoaded('menuitems'))
+      'menuitems' => $this->getMenuItems()
     ];
 
     $filter = json_decode($request->filter);
@@ -33,4 +36,31 @@ class MenuTransformer extends BaseApiTransformer
 
     return $data;
   }
+
+  /*
+  * Integration with tenant - menuitems
+  */
+  public function getMenuItems(){
+  
+  
+    return Cache::store('array')->remember('menu_items_' . $this->id, 60, function () {
+  
+      $params = [
+        "include" => [],
+        "filter" => [
+          "menu" => $this->id,
+          "order" => ['way' => 'asc']
+        ],
+      ];
+  
+      $menuItems = app('Modules\Menu\Repositories\MenuItemRepository')->getItemsBy(json_decode(json_encode($params)));
+  
+      if (!empty($menuItems))
+        return MenuitemTransformer::collection($menuItems);
+  
+      return '';
+    });
+  }
+
+
 }
