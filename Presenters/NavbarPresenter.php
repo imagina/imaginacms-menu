@@ -18,7 +18,7 @@ class NavbarPresenter extends Presenter
     // Get organization
     $organization = null;
 
-    if(!is_null($item->attributes["organization_id"])){
+    if(isset($item->attributes["organization_id"]) && !is_null($item->attributes["organization_id"])){
       if(isset(tenant()->id))
         $organization = Organization::find(tenant()->id);
     }
