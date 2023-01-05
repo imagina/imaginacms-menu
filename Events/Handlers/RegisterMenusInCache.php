@@ -25,7 +25,9 @@ class RegisterMenusInCache
   
   public function handle()
   {
+
     if (
+      request()->is('api/*') ||
       \App::runningInConsole() === true ||
       !\Schema::hasTable('menu__menus')
     ) {
