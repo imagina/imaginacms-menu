@@ -14,7 +14,7 @@ class Menuitem extends Model
     protected $fillable = [
         'menu_id',
         'page_id',
-        'syste_name',
+        'system_name',
         'parent_id',
         'position',
         'target',
@@ -74,4 +74,10 @@ class Menuitem extends Model
     {
         $this->attributes['parent_id'] = ! empty($value) ? $value : null;
     }
+
+    public function setSystemNameAttribute($value)
+    {
+        $this->attributes['system_name'] = !empty($value) ? $value : \Str::slug($this->title, '-');
+    }
+
 }

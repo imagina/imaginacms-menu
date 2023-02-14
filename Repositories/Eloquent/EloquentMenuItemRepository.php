@@ -19,7 +19,13 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
   public function create($data)
   {
     event($event = new MenuItemIsCreating($data));
-    $menuItem = $this->model->create($event->getAttributes());
+
+    $data = $event->getAttributes();
+
+    //force it into the system name setter
+    $data["system_name"] = "";
+   
+    $menuItem = $this->model->create($data);
 
     event(new MenuItemWasCreated($menuItem));
 
@@ -282,7 +288,13 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
 
     //Update menu item
     event($event = new MenuItemIsUpdating($model, $data));
-    $model->update($event->getAttributes());
+
+    $data = $event->getAttributes();
+
+    //force it into the system name setter
+    $data["system_name"] = "";
+
+    $model->update($data);
     event(new MenuItemWasUpdated($model));
     return $model;
   }
