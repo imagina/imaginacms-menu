@@ -23,7 +23,7 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
     $data = $event->getAttributes();
 
     //force it into the system name setter
-    $data["system_name"] = "";
+    $data["system_name"] = $data["system_name"] ?? "";
    
     $menuItem = $this->model->create($data);
 
@@ -292,7 +292,7 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
     $data = $event->getAttributes();
 
     //force it into the system name setter
-    $data["system_name"] = "";
+    $data["system_name"] = $data["system_name"] ?? "";
 
     $model->update($data);
     event(new MenuItemWasUpdated($model));

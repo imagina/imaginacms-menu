@@ -9,11 +9,12 @@ class MenuitemTransformer extends BaseApiTransformer
 {
   public function toArray($request)
   {
+   
     $data = [
       'id'  => $this->when($this->id, $this->id),
       'menuId' => $this->when($this->menu_id, $this->menu_id),
       'menu' => new MenuTransformer($this->whenLoaded('menu')),
-      'menuName' => $this->when($this->menu_id, $this->menu->name),
+      'menuName' => $this->when(isset($this->menu), $this->menu->name ?? ""),
       'pageId' => $this->when($this->page_id, $this->page_id),
       'systemName' => $this->when($this->system_name, $this->system_name),
       'parent' => new MenuitemTransformer ($this->whenLoaded('parent')),

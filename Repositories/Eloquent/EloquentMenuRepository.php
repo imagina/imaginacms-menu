@@ -160,8 +160,7 @@ class EloquentMenuRepository extends EloquentBaseRepository implements MenuRepos
           ->orWhereNull($model->qualifyColumn(BelongsToTenant::$tenantIdColumn));
       });
     }
-
-
+  
     /*== FIELDS ==*/
     if (isset($params->fields) && count($params->fields))
       $query->select($params->fields);

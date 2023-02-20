@@ -11,6 +11,7 @@ class MenuTransformer extends BaseApiTransformer
 {
   public function toArray($request)
   {
+    
     $data = [
       'id' => $this->when($this->id, $this->id),
       'name' => $this->when($this->name, $this->name),
@@ -33,7 +34,8 @@ class MenuTransformer extends BaseApiTransformer
         $data[$lang]['status'] = $this->hasTranslation($lang) ? $this->translate("$lang")['status'] : '';
       }
     }
-
+  
+  
     return $data;
   }
 
@@ -43,7 +45,7 @@ class MenuTransformer extends BaseApiTransformer
   public function getMenuItems(){
   
   
-    return Cache::store('array')->remember('menu_items_' . $this->id, 60, function () {
+    return Cache::store(config("cache.default"))->remember('menu_items_' . $this->id.(tenant()->id ?? ""), 60, function () {
   
       $params = [
         "include" => [],
@@ -54,7 +56,7 @@ class MenuTransformer extends BaseApiTransformer
       ];
   
       $menuItems = app('Modules\Menu\Repositories\MenuItemRepository')->getItemsBy(json_decode(json_encode($params)));
-  
+     
       if (!empty($menuItems))
         return MenuitemTransformer::collection($menuItems);
   
