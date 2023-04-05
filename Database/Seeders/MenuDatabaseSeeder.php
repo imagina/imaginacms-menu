@@ -18,6 +18,6 @@ class MenuDatabaseSeeder extends Seeder
     Model::unguard();
     //Seed cms pages
     $this->call(MenuModuleTableSeeder::class);
-    $this->call(CMSSidebarDatabaseSeeder::class);
+    //$this->call(CMSSidebarDatabaseSeeder::class);
   }
 }
