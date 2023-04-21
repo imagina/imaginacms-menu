@@ -7,9 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use Modules\Isite\Entities\Module;
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
+use Modules\Core\Support\Traits\AuditTrait;
+
 class Menu extends Model
 {
-    use Translatable, BelongsToTenant;
+    use Translatable, BelongsToTenant, AuditTrait;
 
     protected $fillable = [
         'name',

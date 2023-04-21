@@ -6,9 +6,12 @@ use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use TypiCMS\NestableTrait;
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
+
+use Modules\Core\Support\Traits\AuditTrait;
+
 class Menuitem extends Model
 {
-    use Translatable, NestableTrait, BelongsToTenant;
+    use Translatable, NestableTrait, BelongsToTenant, AuditTrait;
 
     public $translatedAttributes = ['title', 'uri', 'url', 'status', 'locale', 'description'];
     protected $fillable = [
