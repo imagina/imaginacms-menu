@@ -12,12 +12,20 @@ use Modules\Menu\Events\MenuItemWasCreated;
 use Modules\Menu\Events\MenuItemWasUpdated;
 use Modules\Menu\Repositories\MenuItemRepository;
 
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
+
 class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuItemRepository
 {
   public function create($data)
   {
     event($event = new MenuItemIsCreating($data));
-    $menuItem = $this->model->create($event->getAttributes());
+
+    $data = $event->getAttributes();
+
+    //force it into the system name setter
+    $data["system_name"] = $data["system_name"] ?? "";
+   
+    $menuItem = $this->model->create($data);
 
     event(new MenuItemWasCreated($menuItem));
 
@@ -187,6 +195,19 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
 
     }
 
+    $entitiesWithCentralData = json_decode(setting("isite::tenantWithCentralData", null, "[]",true));
+    $tenantWithCentralData = in_array("menuitem", $entitiesWithCentralData);
+
+    if ($tenantWithCentralData && isset(tenant()->id)) {
+      $model = $this->model;
+
+      $query->withoutTenancy();
+      $query->where(function ($query) use ($model) {
+        $query->where($model->qualifyColumn(BelongsToTenant::$tenantIdColumn), tenant()->getTenantKey())
+          ->orWhereNull($model->qualifyColumn(BelongsToTenant::$tenantIdColumn));
+      });
+    }
+
     /*== FIELDS ==*/
     if (isset($params->fields) && count($params->fields))
       $query->select($params->fields);
@@ -195,7 +216,7 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
     if (isset($params->page) && $params->page) {
       return $query->paginate($params->take);
     } else {
-      $params->take ? $query->take($params->take) : false;//Take
+      isset($params->take) && $params->take ? $query->take($params->take) : false;//Take
       return $query->get();
     }
   }
@@ -223,6 +244,19 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
         $query->where($filter->field, $criteria);
       else//Filter by ID
         $query->where('id', $criteria);
+    }
+
+    $entitiesWithCentralData = json_decode(setting("isite::tenantWithCentralData", null, "[]",true));
+    $tenantWithCentralData = in_array("menuitem", $entitiesWithCentralData);
+
+    if ($tenantWithCentralData && isset(tenant()->id)) {
+      $model = $this->model;
+
+      $query->withoutTenancy();
+      $query->where(function ($query) use ($model) {
+        $query->where($model->qualifyColumn(BelongsToTenant::$tenantIdColumn), tenant()->getTenantKey())
+          ->orWhereNull($model->qualifyColumn(BelongsToTenant::$tenantIdColumn));
+      });
     }
 
     /*== FIELDS ==*/
@@ -258,7 +292,13 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
 
     //Update menu item
     event($event = new MenuItemIsUpdating($model, $data));
-    $model->update($event->getAttributes());
+
+    $data = $event->getAttributes();
+
+    //force it into the system name setter
+    $data["system_name"] = $data["system_name"] ?? "";
+
+    $model->update($data);
     event(new MenuItemWasUpdated($model));
     return $model;
   }

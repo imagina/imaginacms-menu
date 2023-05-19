@@ -4,10 +4,14 @@ namespace Modules\Menu\Entities;
 
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
+use Modules\Isite\Entities\Module;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
+
+use Modules\Core\Support\Traits\AuditTrait;
 
 class Menu extends Model
 {
-    use Translatable;
+    use Translatable, BelongsToTenant, AuditTrait;
 
     protected $fillable = [
         'name',
@@ -20,6 +24,11 @@ class Menu extends Model
 
     public function menuitems()
     {
-        return $this->hasMany('Modules\Menu\Entities\Menuitem')->orderBy('position', 'asc');
+        $modulesEnabled = implode("|",Module::where("enabled",1)->get()->pluck("alias")->toArray() ?? []);
+        
+        $relation = $this->hasMany('Modules\Menu\Entities\Menuitem')->with("translations")->orderBy('position', 'asc');
+        $relation->whereRaw("system_name REGEXP '$modulesEnabled'");
+        
+        return $relation;
     }
 }

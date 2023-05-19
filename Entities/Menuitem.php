@@ -5,29 +5,27 @@ namespace Modules\Menu\Entities;
 use Astrotomic\Translatable\Translatable;
 use Illuminate\Database\Eloquent\Model;
 use TypiCMS\NestableTrait;
+use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
+
+use Modules\Core\Support\Traits\AuditTrait;
 
 class Menuitem extends Model
 {
-    use Translatable, NestableTrait;
+    use Translatable, NestableTrait, BelongsToTenant, AuditTrait;
 
-    public $translatedAttributes = ['title', 'uri', 'url', 'status', 'locale'];
+    public $translatedAttributes = ['title', 'uri', 'url', 'status', 'locale', 'description'];
     protected $fillable = [
         'menu_id',
         'page_id',
+        'system_name',
         'parent_id',
         'position',
         'target',
         'module_name',
-        'title',
-        'uri',
-        'url',
-        'status',
         'is_root',
         'icon',
         'link_type',
-        'locale',
         'class',
-        'description',
     ];
     protected $table = 'menu__menuitems';
 
@@ -79,4 +77,10 @@ class Menuitem extends Model
     {
         $this->attributes['parent_id'] = ! empty($value) ? $value : null;
     }
+
+    public function setSystemNameAttribute($value)
+    {
+        $this->attributes['system_name'] = !empty($value) ? $value : \Str::slug($this->title, '-');
+    }
+
 }
