@@ -1,9 +1,11 @@
 <?php
 
 namespace Modules\Menu\Transformers;
+
 use Illuminate\Http\Resources\Json\JsonResource;
 use Modules\Ihelpers\Transformers\BaseApiTransformer;
 use Illuminate\Support\Facades\Cache;
+use Modules\Isite\Transformers\RevisionTransformer;
 
 class MenuitemTransformer extends BaseApiTransformer
 {
@@ -34,6 +36,7 @@ class MenuitemTransformer extends BaseApiTransformer
       'class' => $this->when($this->class, $this->class),
       'createdAt' => $this->when($this->created_at, $this->created_at),
       'updatedAt' => $this->when($this->updated_at, $this->updated_at),
+      'revisions' => RevisionTransformer::collection($this->whenLoaded('revisions')),
     ];
 
     $filter = json_decode($request->filter);
