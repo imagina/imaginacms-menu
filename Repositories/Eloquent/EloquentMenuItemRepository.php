@@ -145,7 +145,7 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
     $query = $this->model->query();
 
     /*== RELATIONSHIPS ==*/
-    if (in_array('*', $params->include)) {//If Request all relationships
+    if (in_array('*', $params->include ?? [])) {//If Request all relationships
       $query->with([]);
     } else {//Especific relationships
       $includeDefault = [];//Default relationships
@@ -227,7 +227,7 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
     $query = $this->model->query();
 
     /*== RELATIONSHIPS ==*/
-    if (in_array('*', $params->include)) {//If Request all relationships
+    if (in_array('*', $params->include ?? [])) {//If Request all relationships
       $query->with([]);
     } else {//Especific relationships
       $includeDefault = [];//Default relationships
@@ -262,6 +262,10 @@ class EloquentMenuItemRepository extends EloquentBaseRepository implements MenuI
     /*== FIELDS ==*/
     if (isset($params->fields) && count($params->fields))
       $query->select($params->fields);
+
+    if (!isset($params->filter->field)) {
+      $query->where('id', $criteria);
+    }
 
     /*== REQUEST ==*/
     return $query->first();
