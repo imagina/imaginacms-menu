@@ -30,7 +30,7 @@
   "require-dev": {
     "orchestra/testbench": "^8.5",
     "phpunit/phpunit": "^10",
-    "fzaninotto/faker": "^1.9.*",
+    "fzaninotto/faker": "^1.9",
     "doctrine/dbal": "^3.5",
     "imagina/page-module": "v10.x-dev"
   },
