@@ -4,7 +4,7 @@ namespace Modules\Menu\Presenters;
 
 use Illuminate\Support\Str;
 use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
-use Modules\Isite\Entities\Organization;
+use Nwidart\Menus\MenuItem;
 use Nwidart\Menus\Presenters\Presenter;
 
 class NavbarPresenter extends Presenter

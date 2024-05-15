@@ -2,6 +2,8 @@
 
 namespace Modules\Menu\Presenters;
 
+use Mcamara\LaravelLocalization\Facades\LaravelLocalization;
+use Nwidart\Menus\MenuItem;
 use Nwidart\Menus\Presenters\Presenter;
 
 class NavbarRightPresenter extends Presenter
