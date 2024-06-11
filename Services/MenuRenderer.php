@@ -8,24 +8,22 @@ class MenuRenderer
      * @var int Id of the menu to render
      */
     protected $menuId;
+
     /**
      * @var string
      */
     private $startTag = '<div class="dd">';
+
     /**
      * @var string
      */
     private $endTag = '</div>';
+
     /**
      * @var string
      */
     private $menu = '';
 
-    /**
-     * @param $menuId
-     * @param $menuItems
-     * @return string
-     */
     public function renderForMenu($menuId, $menuItems)
     {
         $this->menuId = $menuId;
@@ -39,7 +37,6 @@ class MenuRenderer
 
     /**
      * Generate the html for the given items
-     * @param $items
      */
     private function generateHtmlFor($items)
     {
@@ -74,10 +71,6 @@ HTML;
         $this->menu .= '</ol>';
     }
 
-    /**
-     * @param $item
-     * @return bool
-     */
     private function hasChildren($item)
     {
         return count($item->items);

@@ -10,13 +10,14 @@ use Modules\Menu\Events\MenuItemWasUpdated;
 
 class EloquentMenuItemRepositoryTest extends BaseMenuTest
 {
-    public function setUp()
+    public function setUp(): void
     {
         parent::setUp();
     }
 
     /**
      * New menu item should be created
+     *
      * @test
      */
     public function it_should_create_menu_item_as_root()
