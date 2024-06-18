@@ -115,7 +115,7 @@ class CacheMenuItemDecorator extends BaseCacheDecorator implements MenuItemRepos
    */
   public function getItemsBy($params)
   {
-    $cacheKey = $this->createKey("{$this->entityName}.getItemBy", $params);
+    $cacheKey = $this->createKey("{$this->entityName}.getItemsBy", $params);
     return $this->cache
       ->tags([$this->entityName, 'global'])
       ->remember($cacheKey, $this->cacheTime,
