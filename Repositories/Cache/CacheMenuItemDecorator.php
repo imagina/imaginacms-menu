@@ -135,9 +135,10 @@ class CacheMenuItemDecorator extends BaseCacheDecorator implements MenuItemRepos
      */
     public function getItemsBy($params)
     {
+        $cacheKey = $this->createKey("{$this->entityName}.getItemsBy", $params);
         return $this->cache
             ->tags([$this->entityName, 'global'])
-            ->remember("{$this->entityName}.getItemBy", $this->cacheTime,
+            ->remember($cacheKey, $this->cacheTime,
                 function () use ($params) {
                     return $this->repository->getItemsBy($params);
                 }
@@ -183,5 +184,17 @@ class CacheMenuItemDecorator extends BaseCacheDecorator implements MenuItemRepos
         $this->cache->tags($this->entityName)->flush();
 
         return $this->repository-> deleteItems($criterias);
+    }
+
+    public function createKey($key, $params)
+    {
+      $cacheKey = str_replace(["\"", "`", "{", "}"], "", ($key .
+        (!empty($params->filter) ? \serialize($params->filter) : "") .
+        (!empty($params->order) ? \serialize($params->order) : "") .
+        (!empty($params->include) ? \serialize($params->include) : "") .
+        (!empty($params->page) ? \serialize($params->page) : "") .
+        (!empty($params->take) ? \serialize($params->take) : "")));
+
+      return hash('sha256', $cacheKey);
     }
 }
