@@ -20,7 +20,7 @@ class MenuitemTransformer extends BaseApiTransformer
             'parent' => new MenuitemTransformer($this->whenLoaded('parent')),
             'parentId' => intval($this->parent_id),
             'pageName' => $this->page_name,
-            'position' => $this->when($this->position, $this->position),
+            'position' => $this->position,
             'target' => $this->when($this->target, $this->target),
             'moduleName' => $this->when($this->module_name, $this->module_name),
             'title' => $this->when($this->title, $this->title),
