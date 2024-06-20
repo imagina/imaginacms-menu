@@ -4,40 +4,130 @@ namespace Modules\Menu\Repositories\Eloquent;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\App;
-use Modules\Core\Repositories\Eloquent\EloquentBaseRepository;
+use Modules\Core\Icrud\Repositories\Eloquent\EloquentCrudRepository;
 use Modules\Menu\Events\MenuIsCreating;
 use Modules\Menu\Events\MenuIsUpdating;
 use Modules\Menu\Events\MenuWasCreated;
 use Modules\Menu\Events\MenuWasUpdated;
 use Modules\Menu\Repositories\MenuRepository;
-
 use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
-class EloquentMenuRepository extends EloquentBaseRepository implements MenuRepository
+class EloquentMenuRepository extends EloquentCrudRepository implements MenuRepository
 {
-  public function create($data)
+  /**
+   * Filter names to replace
+   * @var array
+   */
+  protected $replaceFilters = ["status"];
+
+  /**
+   * Relation names to replace
+   * @var array
+   */
+  protected $replaceSyncModelRelations = [];
+
+  /**
+   * Filter query
+   *
+   * @param $query
+   * @param $filter
+   * @param $params
+   * @return mixed
+   */
+  public function filterQuery($query, $filter, $params)
   {
-    event($event = new MenuIsCreating($data));
-    $menu = $this->model->create($event->getAttributes());
 
-    event(new MenuWasCreated($menu));
+    /**
+     * Note: Add filter name to replaceFilters attribute before replace it
+     *
+     * Example filter Query
+     * if (isset($filter->status)) $query->where('status', $filter->status);
+     *
+     */
 
-    return $menu;
+    //add filter by search
+    if (isset($filter->search)) {
+      //find search in columns
+      $query->where(function ($query) use ($filter) {
+        $query->whereHas('translations', function ($query) use ($filter) {
+          $query->where('locale', $filter->locale)
+            ->where('title', 'like', '%' . $filter->search . '%');
+        })->orWhere('id', 'like', '%' . $filter->search . '%')
+          ->orWhere('updated_at', 'like', '%' . $filter->search . '%')
+          ->orWhere('created_at', 'like', '%' . $filter->search . '%');
+      });
+    }
+
+    //add filter by search
+    if (isset($filter->status)) {
+      //find search in columns
+      $query->where(function ($query) use ($filter) {
+        $query->whereHas('translations', function ($query) use ($filter) {
+          $query->where('status', $filter->status);
+        });
+      });
+    }
+
+    //Filter by name
+    if (isset($filter->name)) {
+      $query->where('name', $filter->name);
+    }
+
+    $this->validateTenantWithCentralData($query);
+
+    //Response
+    return $query;
   }
 
-  public function update($menu, $data)
+  /**
+   * Method to sync Model Relations
+   *
+   * @param $model ,$data
+   * @return $model
+   */
+  public function syncModelRelations($model, $data)
   {
-    event($event = new MenuIsUpdating($menu, $data));
-    $menu->update($event->getAttributes());
+    //Get model relations data from attribute of model
+    $modelRelationsData = ($model->modelRelations ?? []);
 
-    event(new MenuWasUpdated($menu));
+    /**
+     * Note: Add relation name to replaceSyncModelRelations attribute before replace it
+     *
+     * Example to sync relations
+     * if (array_key_exists(<relationName>, $data)){
+     *    $model->setRelation(<relationName>, $model-><relationName>()->sync($data[<relationName>]));
+     * }
+     *
+     */
 
-    return $menu;
+    //Response
+    return $model;
+  }
+
+  public function validateTenantWithCentralData($query)
+  {
+    $entitiesWithCentralData = json_decode(setting('isite::tenantWithCentralData', null, '[]', true));
+    $tenantWithCentralData = in_array('menu', $entitiesWithCentralData);
+
+    if ($tenantWithCentralData && isset(tenant()->id)) {
+      $model = $this->model;
+
+      $query->withoutTenancy();
+      $query->where(function ($query) use ($model) {
+        $query->where($model->qualifyColumn(BelongsToTenant::$tenantIdColumn), tenant()->getTenantKey())
+          ->orWhereNull($model->qualifyColumn(BelongsToTenant::$tenantIdColumn));
+      });
+    } else {
+      // Validation like DEEV
+      // When user is going to pay the plan in central checkout
+      if (config("tenancy.mode") != NULL && config("tenancy.mode") == "singleDatabase" && is_null(tenant()))
+        $query->where("organization_id", null);
+    }
+
   }
 
   /**
    * Get all online menus
-   * @return object
    */
   public function allOnline()
   {
@@ -49,161 +139,26 @@ class EloquentMenuRepository extends EloquentBaseRepository implements MenuRepos
     })->with('translations')->orderBy('created_at', 'DESC')->get();
   }
 
-
-  public function getItemsBy($params = false)
+  public function create($data)
   {
-    /*== initialize query ==*/
-    $query = $this->model->query();
+    event($event = new MenuIsCreating($data));
 
-    /*== RELATIONSHIPS ==*/
-    if (in_array('*', $params->include ?? [])) {//If Request all relationships
-      $query->with([]);
-    } else {//Especific relationships
-      $includeDefault = [];//Default relationships
-      if (isset($params->include))//merge relations with default relationships
-        $includeDefault = array_merge($includeDefault, $params->include);
-      $query->with($includeDefault);//Add Relationships to query
-    }
+    $model = parent::create($event->getAttributes()); // TODO: Change the autogenerated stub
 
-    /*== FILTERS ==*/
-    if (isset($params->filter)) {
-      $filter = $params->filter;//Short filter
+    event(new MenuWasCreated($model));
 
-      //Filter by date
-      if (isset($filter->date)) {
-        $date = $filter->date;//Short filter date
-        $date->field = $date->field ?? 'created_at';
-        if (isset($date->from))//From a date
-          $query->whereDate($date->field, '>=', $date->from);
-        if (isset($date->to))//to a date
-          $query->whereDate($date->field, '<=', $date->to);
-      }
+    return $model;
 
-      //Order by
-      if (isset($filter->order)) {
-        $orderByField = $filter->order->field ?? 'created_at';//Default field
-        $orderWay = $filter->order->way ?? 'desc';//Default way
-        $query->orderBy($orderByField, $orderWay);//Add order to query
-      }
-
-      //add filter by search
-      if (isset($filter->search)) {
-        //find search in columns
-        $query->where(function ($query) use ($filter) {
-          $query->whereHas('translations', function ($query) use ($filter) {
-            $query->where('locale', $filter->locale)
-              ->where('title', 'like', '%' . $filter->search . '%');
-          })->orWhere('id', 'like', '%' . $filter->search . '%')
-            ->orWhere('updated_at', 'like', '%' . $filter->search . '%')
-            ->orWhere('created_at', 'like', '%' . $filter->search . '%');
-        });
-      }
-
-      //Filter by name
-      if (isset($filter->name)) {
-        $query->where('name', $filter->name);
-      }
-    }
-
-    /*== FIELDS ==*/
-    if (isset($params->fields) && count($params->fields))
-      $query->select($params->fields);
-
-    /*== REQUEST ==*/
-    if (isset($params->page) && $params->page) {
-      return $query->paginate($params->take);
-    } else {
-      $params->take ? $query->take($params->take) : false;//Take
-      return $query->get();
-    }
   }
 
-  public function getItem($criteria, $params = false)
+  public function update($menu, $data)
   {
-    //Initialize query
-    $query = $this->model->query();
+    event($event = new MenuIsUpdating($menu, $data));
 
-    /*== RELATIONSHIPS ==*/
-    if (in_array('*', $params->include ?? [])) {//If Request all relationships
-      $query->with([]);
-    } else {//Especific relationships
-      $includeDefault = [];//Default relationships
-      if (isset($params->include))//merge relations with default relationships
-        $includeDefault = array_merge($includeDefault, $params->include);
-      $query->with($includeDefault);//Add Relationships to query
-    }
+    $model = parent::create($event->getAttributes()); // TODO: Change the autogenerated stub
 
-    /*== FILTER ==*/
-    if (isset($params->filter)) {
-      $filter = $params->filter;
+    event(new MenuWasUpdated($model));
 
-      if (isset($filter->field))//Filter by specific field
-        $query->where($filter->field, $criteria);
-      else//Filter by ID
-        $query->where('id', $criteria);
-    }
-
-    if (!isset($params->filter->field)) {
-      $query->where('id', $criteria);
-    }
-
-
-    $entitiesWithCentralData = json_decode(setting("isite::tenantWithCentralData", null, "[]",true));
-    $tenantWithCentralData = in_array("menu", $entitiesWithCentralData);
-
-    if ($tenantWithCentralData && isset(tenant()->id)) {
-      $model = $this->model;
-
-      $query->withoutTenancy();
-      $query->where(function ($query) use ($model) {
-        $query->where($model->qualifyColumn(BelongsToTenant::$tenantIdColumn), tenant()->getTenantKey())
-          ->orWhereNull($model->qualifyColumn(BelongsToTenant::$tenantIdColumn));
-      });
-    }
-
-    /*== FIELDS ==*/
-    if (isset($params->fields) && count($params->fields))
-      $query->select($params->fields);
-
-    /*== REQUEST ==*/
-    return $query->first();
+    return $model;
   }
-
-  public function updateBy($criteria, $data, $params = false)
-  {
-    /*== initialize query ==*/
-    $query = $this->model->query();
-
-    /*== FILTER ==*/
-    if (isset($params->filter)) {
-      $filter = $params->filter;
-
-      //Update by field
-      if (isset($filter->field))
-        $field = $filter->field;
-    }
-
-    /*== REQUEST ==*/
-    $model = $query->where($field ?? 'id', $criteria)->first();
-    return $model ? $model->update((array)$data) : false;
-  }
-
-  public function deleteBy($criteria, $params = false)
-  {
-    /*== initialize query ==*/
-    $query = $this->model->query();
-
-    /*== FILTER ==*/
-    if (isset($params->filter)) {
-      $filter = $params->filter;
-
-      if (isset($filter->field))//Where field
-        $field = $filter->field;
-    }
-
-    /*== REQUEST ==*/
-    $model = $query->where($field ?? 'id', $criteria)->first();
-    $model ? $model->delete() : false;
-  }
-
 }
