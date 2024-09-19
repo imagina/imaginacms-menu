@@ -91,15 +91,13 @@ class Menuitem extends CrudModel
     $this->attributes['parent_id'] = !empty($value) ? $value : null;
   }
 
+  public function getParentIdAttribute($value)
+  {
+    return intval(is_null($value) ? 0 : $value);
+  }
+
   public function setSystemNameAttribute($value)
   {
     $this->attributes['system_name'] = !empty($value) ? $value : \Str::slug($this->title, '-');
-  }
-
-  public function getCacheClearableData()
-  {
-    return [
-      'allResponseCache' => true
-    ];
   }
 }

@@ -11,48 +11,37 @@ use Stancl\Tenancy\Database\Concerns\BelongsToTenant;
 
 class Menu extends CrudModel
 {
-    use Translatable, BelongsToTenant;
+  use Translatable, BelongsToTenant;
 
-    protected $table = 'menu__menus';
-    public $transformer = 'Modules\Menu\Transformers\MenuTransformer';
-    public $repository = 'Modules\Menu\Repositories\MenuRepository';
-    public $requestValidation = [
-        'create' => 'Modules\Menu\Http\Requests\CreateMenuRequest',
-        'update' => 'Modules\Menu\Http\Requests\UpdateMenuRequest',
-    ];
-    //Instance external/internal events to dispatch with extraData
-    public $dispatchesEventsWithBindings = [
-        //eg. ['path' => 'path/module/event', 'extraData' => [/*...optional*/]]
-        'created' => [],
-        'creating' => [],
-        'updated' => [],
-        'updating' => [],
-        'deleting' => [],
-        'deleted' => []
-    ];
-    protected $fillable = [
-        'name',
-        'title',
-        'status',
-        'primary',
-    ];
+  protected $table = 'menu__menus';
+  public $transformer = 'Modules\Menu\Transformers\MenuTransformer';
+  public $repository = 'Modules\Menu\Repositories\MenuRepository';
+  public $requestValidation = [
+    'create' => 'Modules\Menu\Http\Requests\CreateMenuRequest',
+    'update' => 'Modules\Menu\Http\Requests\UpdateMenuRequest',
+  ];
+  //Instance external/internal events to dispatch with extraData
+  public $dispatchesEventsWithBindings = [
+    //eg. ['path' => 'path/module/event', 'extraData' => [/*...optional*/]]
+    'created' => [],
+    'creating' => [],
+    'updated' => [],
+    'updating' => [],
+    'deleting' => [],
+    'deleted' => []
+  ];
+  protected $fillable = [
+    'name',
+    'title',
+    'status',
+    'primary',
+  ];
 
-    public $translatedAttributes = ['title', 'status'];
+  public $translatedAttributes = ['title', 'status'];
 
 
-    public function menuitems()
-    {
-        $modulesEnabled = implode('|', Module::where('enabled', 1)->get()->pluck('alias')->toArray() ?? []);
-        $relation = $this->hasMany('Modules\Menu\Entities\Menuitem')->with('translations')->orderBy('position', 'asc');
-        $relation->whereRaw("system_name REGEXP '$modulesEnabled'");
-
-        return $relation;
-    }
-
-    public function getCacheClearableData()
-    {
-      return [
-        'allResponseCache' => true
-      ];
-    }
+  public function menuitems()
+  {
+    return $this->hasMany('Modules\Menu\Entities\Menuitem')->with('translations')->orderBy('position', 'asc');
+  }
 }
