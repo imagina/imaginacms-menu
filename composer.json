@@ -1,28 +1,30 @@
 {
-    "name": "imagina/imenu",
-    "description": "",
-    "authors": [
-        {
-            "name": "Imagina Colombia",
-            "email": "soporte@imaginacolombia.com"
-        }
-    ],
-    "extra": {
-        "laravel": {
-            "providers": [],
-            "aliases": {}
-        }
-    },
-    "autoload": {
-        "psr-4": {
-            "Modules\\Imenu\\": "app/",
-            "Modules\\Imenu\\Database\\Factories\\": "database/factories/",
-            "Modules\\Imenu\\Database\\Seeders\\": "database/Seeders/"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Modules\\Imenu\\Tests\\": "tests/"
-        }
+  "name": "imagina/imenu",
+  "description": "",
+  "type": "laravel-module",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Imagina Colombia",
+      "email": "soporte@imaginacolombia.com"
     }
+  ],
+  "extra": {
+    "laravel": {
+      "providers": [],
+      "aliases": {}
+    }
+  },
+  "autoload": {
+    "psr-4": {
+      "Modules\\Imenu\\": "app/",
+      "Modules\\Imenu\\Database\\Factories\\": "database/factories/",
+      "Modules\\Imenu\\Database\\Seeders\\": "database/Seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Imenu\\Tests\\": "tests/"
+    }
+  }
 }
