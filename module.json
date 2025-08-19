@@ -1,0 +1,12 @@
+
+{
+    "name": "Imenu",
+    "alias": "imenu",
+    "description": "manage imenu",
+    "keywords": ["imenu"],
+    "priority": 0,
+    "providers": [
+        "Modules\\Imenu\\Providers\\ImenuServiceProvider"
+    ],
+    "files": []
+}
